@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bet Tracker</title>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    min-height: 100vh;
+    color: #333;
+    padding: 20px;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    color: #fff;
+    text-align: center;
+    margin-bottom: 8px;
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    color: #cdd9ec;
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 0.95rem;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  }
+
+  .card h2 {
+    margin-bottom: 16px;
+    font-size: 1.2rem;
+    color: #1e3c72;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .field.full {
+    grid-column: 1 / -1;
+  }
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #555;
+  }
+
+  input, select {
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    width: 100%;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: #2a5298;
+    box-shadow: 0 0 0 3px rgba(42,82,152,0.15);
+  }
+
+  .result-toggle {
+    display: flex;
+    gap: 10px;
+  }
+
+  .result-toggle button {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #ccc;
+    background: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+
+  .result-toggle button.won.active {
+    background: #2ecc71;
+    border-color: #2ecc71;
+    color: #fff;
+  }
+
+  .result-toggle button.lost.active {
+    background: #e74c3c;
+    border-color: #e74c3c;
+    color: #fff;
+  }
+
+  .result-toggle button.push.active {
+    background: #95a5a6;
+    border-color: #95a5a6;
+    color: #fff;
+  }
+
+  .btn-primary {
+    background: #2a5298;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+    transition: background 0.15s;
+  }
+
+  .btn-primary:hover {
+    background: #1e3c72;
+  }
+
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .stat {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  }
+
+  .stat .label {
+    font-size: 0.8rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat .value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-top: 6px;
+  }
+
+  .day-group {
+    margin-bottom: 18px;
+  }
+
+  .day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #1e3c72;
+    color: #fff;
+    border-radius: 8px 8px 0 0;
+    font-weight: 600;
+  }
+
+  .day-header .day-pl {
+    font-size: 1.1rem;
+  }
+
+  .bet-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    border-bottom: 1px solid #eee;
+    background: #fafafa;
+  }
+
+  .bet-row:last-child {
+    border-radius: 0 0 8px 8px;
+  }
+
+  .bet-info {
+    font-size: 0.9rem;
+  }
+
+  .bet-info .desc {
+    font-weight: 600;
+    color: #333;
+  }
+
+  .bet-info .meta {
+    color: #888;
+    font-size: 0.8rem;
+    margin-top: 2px;
+  }
+
+  .bet-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .bet-pl {
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .badge {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .badge.won { background: #2ecc71; }
+  .badge.lost { background: #e74c3c; }
+  .badge.push { background: #95a5a6; }
+
+  .delete-btn {
+    background: none;
+    border: none;
+    color: #e74c3c;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 4px;
+  }
+
+  .positive { color: #2ecc71; }
+  .negative { color: #e74c3c; }
+  .neutral { color: #95a5a6; }
+
+  .empty {
+    text-align: center;
+    color: #999;
+    padding: 30px;
+  }
+
+  .odds-help {
+    font-size: 0.75rem;
+    color: #999;
+    margin-top: 4px;
+  }
+
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .summary-cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📊 Bet Tracker</h1>
+  <p class="subtitle">Track your daily betting profit & loss</p>
+
+  <!-- Summary -->
+  <div class="summary-cards">
+    <div class="stat">
+      <div class="label">Total P/L</div>
+      <div class="value" id="totalPL">$0.00</div>
+    </div>
+    <div class="stat">
+      <div class="label">Total Bets</div>
+      <div class="value" id="totalBets">0</div>
+    </div>
+    <div class="stat">
+      <div class="label">Win Rate</div>
+      <div class="value" id="winRate">0%</div>
+    </div>
+  </div>
+
+  <!-- Add Bet Form -->
+  <div class="card">
+    <h2>Add a Bet</h2>
+    <div class="form-grid">
+      <div class="field">
+        <label for="betDate">Date</label>
+        <input type="date" id="betDate">
+      </div>
+      <div class="field">
+        <label for="betDesc">Description (optional)</label>
+        <input type="text" id="betDesc" placeholder="e.g. Lakers ML">
+      </div>
+      <div class="field">
+        <label for="wager">Wager Amount ($)</label>
+        <input type="number" id="wager" step="0.01" min="0" placeholder="100">
+      </div>
+      <div class="field">
+        <label for="oddsFormat">Odds Format</label>
+        <select id="oddsFormat">
+          <option value="american">American (+150 / -200)</option>
+          <option value="decimal">Decimal (2.50)</option>
+        </select>
+      </div>
+      <div class="field full">
+        <label for="odds">Odds</label>
+        <input type="text" id="odds" placeholder="e.g. +150 or -200">
+        <span class="odds-help" id="oddsHelp">Use + for underdogs, - for favorites</span>
+      </div>
+      <div class="field full">
+        <label>Result</label>
+        <div class="result-toggle">
+          <button type="button" class="won active" data-result="won" onclick="setResult('won')">Won</button>
+          <button type="button" class="lost" data-result="lost" onclick="setResult('lost')">Lost</button>
+          <button type="button" class="push" data-result="push" onclick="setResult('push')">Push</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="addBet()">Add Bet</button>
+  </div>
+
+  <!-- History -->
+  <div class="card">
+    <h2>History</h2>
+    <div id="history"></div>
+  </div>
+</div>
+
+<script>
+  let selectedResult = 'won';
+  let bets = JSON.parse(localStorage.getItem('bets') || '[]');
+
+  // Set default date to today
+  document.getElementById('betDate').valueAsDate = new Date();
+
+  // Update odds help based on format
+  document.getElementById('oddsFormat').addEventListener('change', function() {
+    const help = document.getElementById('oddsHelp');
+    const oddsInput = document.getElementById('odds');
+    if (this.value === 'american') {
+      help.textContent = 'Use + for underdogs, - for favorites';
+      oddsInput.placeholder = 'e.g. +150 or -200';
+    } else {
+      help.textContent = 'Decimal odds, e.g. 2.50 means 2.5x payout';
+      oddsInput.placeholder = 'e.g. 2.50';
+    }
+  });
+
+  function setResult(result) {
+    selectedResult = result;
+    document.querySelectorAll('.result-toggle button').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.result === result);
+    });
+  }
+
+  // Calculate profit based on wager, odds, format, and result
+  function calculateProfit(wager, odds, format, result) {
+    if (result === 'push') return 0;
+    if (result === 'lost') return -wager;
+
+    // Won
+    let profit = 0;
+    if (format === 'american') {
+      const o = parseFloat(odds);
+      if (o > 0) {
+        profit = wager * (o / 100);
+      } else {
+        profit = wager * (100 / Math.abs(o));
+      }
+    } else {
+      // decimal
+      const d = parseFloat(odds);
+      profit = wager * (d - 1);
+    }
+    return profit;
+  }
+
+  function addBet() {
+    const date = document.getElementById('betDate').value;
+    const desc = document.getElementById('betDesc').value.trim() || 'Untitled bet';
+    const wager = parseFloat(document.getElementById('wager').value);
+    const format = document.getElementById('oddsFormat').value;
+    const oddsRaw = document.getElementById('odds').value.trim();
+
+    // Validation
+    if (!date) { alert('Please select a date.'); return; }
+    if (isNaN(wager) || wager <= 0) { alert('Please enter a valid wager amount.'); return; }
+
+    const oddsNum = parseFloat(oddsRaw);
+    if (isNaN(oddsNum)) { alert('Please enter valid odds.'); return; }
+    if (format === 'decimal' && oddsNum <= 1) { alert('Decimal odds must be greater than 1.'); return; }
+    if (format === 'american' && oddsNum > -100 && oddsNum < 100) { alert('American odds should be ≥ +100 or ≤ -100.'); return; }
+
+    const profit = calculateProfit(wager, oddsNum, format, selectedResult);
+
+    bets.push({
+      id: Date.now(),
+      date,
+      desc,
+      wager,
+      odds: oddsRaw,
+      format,
+      result: selectedResult,
+      profit
+    });
+
+    saveBets();
+    render();
+
+    // Reset some fields
+    document.getElementById('betDesc').value = '';
+    document.getElementById('wager').value = '';
+    document.getElementById('odds').value = '';
+  }
+
+  function deleteBet(id) {
+    if (!confirm('Delete this bet?')) return;
+    bets = bets.filter(b => b.id !== id);
+    saveBets();
+    render();
+  }
+
+  function saveBets() {
+    localStorage.setItem('bets', JSON.stringify(bets));
+  }
+
+  function fmtMoney(n) {
+    const sign = n < 0 ? '-' : '';
+    return sign + '$' + Math.abs(n).toFixed(2);
+  }
+
+  function plClass(n) {
+    if (n > 0) return 'positive';
+    if (n < 0) return 'negative';
+    return 'neutral';
+  }
+
+  function render() {
+    // Summary stats
+    const totalPL = bets.reduce((sum, b) => sum + b.profit, 0);
+    const settledBets = bets.filter(b => b.result !== 'push');
+    const wins = bets.filter(b => b.result === 'won').length;
+    const winRate = settledBets.length ? (wins / settledBets.length * 100).toFixed(1) : 0;
+
+    const totalPLEl = document.getElementById('totalPL');
+    totalPLEl.textContent = fmtMoney(totalPL);
+    totalPLEl.className = 'value ' + plClass(totalPL);
+
+    document.getElementById('totalBets').textContent = bets.length;
+    document.getElementById('winRate').textContent = winRate + '%';
+
+    // History grouped by date
+    const history = document.getElementById('history');
+
+    if (bets.length === 0) {
+      history.innerHTML = '<div class="empty">No bets yet. Add your first bet above!</div>';
+      return;
+    }
+
+    // Group by date
+    const groups = {};
+    bets.forEach(b => {
+      if (!groups[b.date]) groups[b.date] = [];
+      groups[b.date].push(b);
+    });
+
+    // Sort dates descending
+    const sortedDates = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+
+    let html = '';
+    sortedDates.forEach(date => {
+      const dayBets = groups[date];
+      const dayPL = dayBets.reduce((sum, b) => sum + b.profit, 0);
+      const dateObj = new Date(date + 'T00:00:00');
+      const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+
+      html += `<div class="day-group">
+        <div class="day-header">
+          <span>${dateStr}</span>
+          <span class="day-pl ${plClass(dayPL)}" style="color:${dayPL>0?'#2ecc71':dayPL<0?'#ff8a80':'#ddd'}">${fmtMoney(dayPL)}</span>
+        </div>`;
+
+      dayBets.forEach(b => {
+        html += `<div class="bet-row">
+          <div class="bet-info">
+            <div class="desc">${escapeHtml(b.desc)}</div>
+            <div class="meta">Wager ${fmtMoney(b.wager)} @ ${escapeHtml(b.odds)} (${b.format})</div>
+          </div>
+          <div class="bet-right">
+            <span class="badge ${b.result}">${b.result.toUpperCase()}</span>
+            <span class="bet-pl ${plClass(b.profit)}">${fmtMoney(b.profit)}</span>
+            <button class="delete-btn" onclick="deleteBet(${b.id})">🗑️</button>
+          </div>
+        </div>`;
+      });
+
+      html += `</div>`;
+    });
+
+    history.innerHTML = html;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // Initial render
+  render();
+</script>
+</body>
+</html>
